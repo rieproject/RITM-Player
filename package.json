@@ -1,0 +1,23 @@
+{
+  "name": "ritm-player",
+  "private": true,
+  "workspaces": [
+    "ritm-player",
+    "ritm-desktop"
+  ],
+  "scripts": {
+    "build:web": "npm run build:web --workspace=@ritm/desktop",
+    "start:desktop": "npm run start --workspace=@ritm/desktop",
+    "dist:desktop": "npm run dist --workspace=@ritm/desktop",
+    "dist:desktop:dir": "npm run dist:dir --workspace=@ritm/desktop",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "engines": {
+    "node": ">=22.5"
+  }
+}
