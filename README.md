@@ -1,5 +1,9 @@
 # RITM Player — Versi Basic
 
+<p align="center">
+  <img src="/RITM-Player.png" alt="RITM Player" width="720">
+</p>
+
 Pemutar rilisan musik `.ritm` dan file audio biasa, dibuat oleh **rieproject.id | Arie Jakawiguna**.
 
 Repositori ini berisi **versi basic** RITM Player untuk GitHub. Versi ini adalah pemutar inti tanpa fitur lanjutan. Untuk versi terbaru, installer, dan versi web, kunjungi:
