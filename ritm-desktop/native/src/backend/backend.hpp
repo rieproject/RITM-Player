@@ -43,10 +43,16 @@ class Backend {
   virtual double latency() const = 0;
   /** true hanya untuk sink uji (file): render menunggu data alih-alih mengisi hening. */
   virtual bool blocking() const { return false; }
+  /** Linux: pilih "alsa" atau "pipewire". No-op di platform lain. */
+  virtual void setApi(const std::string&) {}
 };
 
-std::unique_ptr<Backend> createSystemBackend();  // WASAPI / CoreAudio
+std::unique_ptr<Backend> createSystemBackend();  // WASAPI / CoreAudio / ALSA|PipeWire
 std::unique_ptr<Backend> createFileBackend(const std::string& spec);  // "file:out.wav;rates=44100,96000;bits=16,32/24;mix=float/48000"
+#if defined(__linux__)
+std::unique_ptr<Backend> createAlsaBackend();
+std::unique_ptr<Backend> createPipeWireBackend();
+#endif
 
 /** Urutan sample rate yang dicoba bila perangkat menolak rate sumber: kelipatan keluarga yang sama dulu. */
 inline std::vector<uint32_t> rateCandidates(uint32_t src) {

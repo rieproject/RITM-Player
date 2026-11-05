@@ -40,6 +40,8 @@ struct EngineConfig {
   Profile profile = Profile::Purist;
   bool guard = true;
   double volume = 1.0;           // < 1 → volume digital (bukan lagi bit-perfect)
+  /** Linux: "alsa" | "pipewire". Diabaikan di Windows/macOS. */
+  std::string api = "alsa";
 };
 
 /** Jalur sinyal yang benar-benar dipakai untuk lagu saat ini. */

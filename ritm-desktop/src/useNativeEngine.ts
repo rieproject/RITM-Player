@@ -4,6 +4,9 @@ import type { NativeApi, NativeDevice, NativeEvent, NativeLoaded } from './deskt
 import type { MessageKey } from './i18n/locales/id';
 import { nativeErrorKey } from './nativeErrors';
 
+/** Backend keluaran Linux (diabaikan di Windows/macOS). */
+export type LinuxAudioBackend = 'alsa' | 'pipewire';
+
 /** Pengaturan keluaran mesin native (disimpan per perangkat komputer). */
 export interface NativeSettings {
   mode: 'exclusive' | 'shared';
@@ -13,9 +16,19 @@ export interface NativeSettings {
   phase: 'linear' | 'minimum';
   dither: boolean;
   shaping: boolean;
+  /** Pilihan backend di Linux: ALSA (bit-perfect) atau PipeWire. */
+  backend: LinuxAudioBackend;
 }
 
-export const DEFAULT_NATIVE: NativeSettings = { mode: 'exclusive', device: '', buffer: 1024, phase: 'linear', dither: true, shaping: true };
+export const DEFAULT_NATIVE: NativeSettings = {
+  mode: 'exclusive',
+  device: '',
+  buffer: 1024,
+  phase: 'linear',
+  dither: true,
+  shaping: true,
+  backend: 'alsa',
+};
 const NATIVE_KEY = 'ritm-native';
 const DSP_KEY = 'ritm-dsp';
 
@@ -27,15 +40,16 @@ function loadJson<T>(key: string, def: T, check: (v: Partial<T>) => T): T {
     return def;
   }
 }
-const loadNative = () =>
-  loadJson<NativeSettings>(NATIVE_KEY, DEFAULT_NATIVE, (v) => ({
-    mode: v.mode === 'shared' ? 'shared' : 'exclusive',
-    device: typeof v.device === 'string' ? v.device : '',
-    buffer: ([256, 512, 1024, 2048, 4096] as const).find((b) => b === v.buffer) ?? 1024,
-    phase: v.phase === 'minimum' ? 'minimum' : 'linear',
-    dither: v.dither !== false,
-    shaping: v.shaping !== false,
-  }));
+const normalizeNative = (v: Partial<NativeSettings>): NativeSettings => ({
+  mode: v.mode === 'shared' ? 'shared' : 'exclusive',
+  device: typeof v.device === 'string' ? v.device : '',
+  buffer: ([256, 512, 1024, 2048, 4096] as const).find((b) => b === v.buffer) ?? 1024,
+  phase: v.phase === 'minimum' ? 'minimum' : 'linear',
+  dither: v.dither !== false,
+  shaping: v.shaping !== false,
+  backend: v.backend === 'pipewire' ? 'pipewire' : 'alsa',
+});
+const loadNative = () => loadJson<NativeSettings>(NATIVE_KEY, DEFAULT_NATIVE, normalizeNative);
 const loadDsp = () =>
   loadJson<DspSettings>(DSP_KEY, { profile: 'purist', guard: true }, (v) => ({ profile: v.profile === 'analog' ? 'analog' : 'purist', guard: v.guard !== false }));
 const save = (key: string, v: unknown) => {
@@ -43,6 +57,18 @@ const save = (key: string, v: unknown) => {
     localStorage.setItem(key, JSON.stringify(v));
   } catch {}
 };
+
+/** Baca pengaturan native dari localStorage (untuk panel pengaturan). */
+export function readNativeSettings(): NativeSettings {
+  return loadNative();
+}
+
+/** Tulis patch ke localStorage tanpa hook React (fallback bila mesin native belum aktif). */
+export function patchNativeSettings(patch: Partial<NativeSettings>): NativeSettings {
+  const next = normalizeNative({ ...loadNative(), ...patch });
+  save(NATIVE_KEY, next);
+  return next;
+}
 
 /** Kontrol khusus mesin native (panel Sinyal). */
 export interface NativeControls {

@@ -28,7 +28,7 @@ export function App() {
   const [media, setMedia] = useState<ActiveMediaState | null>(null);
   const [source, setSource] = useState<{ path: string | null; name: string } | null>(null);
   const [karaoke, setKaraoke] = useState(false);
-  const { engine } = useDesktopEngine(media, source?.path ?? null, karaoke);
+  const { engine, choice } = useDesktopEngine(media, source?.path ?? null, karaoke);
   const island = useIslandState({ hasMedia: !!media, playing: engine.playing });
   const [booklet, setBooklet] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -415,7 +415,13 @@ export function App() {
         </div>
       )}
 
-      {settingsOpen && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && (
+        <SettingsPanel
+          onClose={() => setSettingsOpen(false)}
+          linuxBackend={choice.controls?.settings.backend}
+          onLinuxBackendChange={choice.controls ? (b) => choice.controls!.update({ backend: b }) : undefined}
+        />
+      )}
 
       {booklet && media?.booklet && <BookletModal media={media} onClose={() => setBooklet(false)} />}
 

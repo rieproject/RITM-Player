@@ -8,7 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const EXE = process.platform === 'win32' ? 'ritm-audio.exe' : 'ritm-audio';
-const PLATFORM_DIR = { win32: 'win-x64', darwin: 'mac' }[process.platform];
+const PLATFORM_DIR = { win32: 'win-x64', darwin: 'mac', linux: 'linux-x64' }[process.platform];
 
 /** Lokasi biner: hasil paket (resources/native) atau folder kerja (native/bin/<platform>). */
 function binaryPath(app) {

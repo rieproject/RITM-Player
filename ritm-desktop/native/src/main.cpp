@@ -42,6 +42,7 @@ static void applyConfig(EngineConfig& c, const json::Value& v) {
   if (v.has("profile")) c.profile = v["profile"].str() == "analog" ? Profile::Analog : Profile::Purist;
   if (v.has("guard")) c.guard = v["guard"].boolean(true);
   if (v.has("volume")) c.volume = std::max(0.0, std::min(1.0, v["volume"].num(1)));
+  if (v.has("backend")) c.api = v["backend"].str() == "pipewire" ? "pipewire" : "alsa";
 }
 
 static bool regionFor(const std::string& path, const std::string& entry, FileRegion& r, std::string& err) {
@@ -137,6 +138,7 @@ int main(int argc, char** argv) {
     if (cmd == "devices") emitLine(Writer().add("ev", "devices").raw("list", devicesJson(*backend)).str());
     else if (cmd == "config") {
       applyConfig(cfg, v);
+      backend->setApi(cfg.api);
       engine.setConfig(cfg);
       emitLine(Writer().add("ev", "config").addBool("ok", true).str());
     } else if (cmd == "open") {

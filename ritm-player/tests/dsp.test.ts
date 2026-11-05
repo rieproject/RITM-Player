@@ -209,7 +209,12 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 
 describe('sniffAudioFormat (file asli dari ffmpeg)', () => {
-  const ff = createRequire(import.meta.url)('ffmpeg-static') as string;
+  let ff: string;
+  try {
+    ff = createRequire(import.meta.url)('ffmpeg-static') as string;
+  } catch {
+    ff = 'ffmpeg';
+  }
   const dir = mkdtempSync(path.join(tmpdir(), 'ritm-fmt-'));
   const gen = (name: string, args: string[]) => {
     const out = path.join(dir, name);

@@ -1,11 +1,41 @@
+import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
+import { desktop } from './desktop';
 import { LOCALE_ORDER, LOCALES, useI18n, type Locale } from './i18n';
+import {
+  patchNativeSettings,
+  readNativeSettings,
+  type LinuxAudioBackend,
+} from './useNativeEngine';
 
-/** Pengaturan edisi standar: hanya bahasa. Pemutaran memakai mesin audio otomatis. */
-export function SettingsPanel({ onClose }: { onClose: () => void }) {
+/** Pengaturan edisi standar: bahasa, plus mesin audio Linux (ALSA / PipeWire). */
+export function SettingsPanel({
+  onClose,
+  linuxBackend,
+  onLinuxBackendChange,
+}: {
+  onClose: () => void;
+  /** Backend Linux dari mesin native yang aktif; bila kosong, dibaca dari localStorage. */
+  linuxBackend?: LinuxAudioBackend;
+  onLinuxBackendChange?: (backend: LinuxAudioBackend) => void;
+}) {
   const { t, locale, setLocale } = useI18n();
+  const isLinux = desktop?.platform === 'linux';
+  const [backend, setBackend] = useState<LinuxAudioBackend>(
+    () => linuxBackend ?? readNativeSettings().backend,
+  );
+
+  useEffect(() => {
+    if (linuxBackend) setBackend(linuxBackend);
+  }, [linuxBackend]);
 
   const localeOptions = LOCALE_ORDER.map((l): [Locale, string, boolean] => [l, LOCALES[l].name, false]);
+
+  const changeBackend = (next: LinuxAudioBackend) => {
+    setBackend(next);
+    if (onLinuxBackendChange) onLinuxBackendChange(next);
+    else patchNativeSettings({ backend: next });
+  };
 
   return (
     <div className="fixed inset-0 z-[60] flex justify-end" role="dialog" aria-modal="true" aria-label={t('settings.title')}>
@@ -22,6 +52,24 @@ export function SettingsPanel({ onClose }: { onClose: () => void }) {
           <p className="label mb-2">{t('settings.language')}</p>
           <Segmented label={t('settings.language')} value={locale} onChange={setLocale} options={localeOptions} />
         </section>
+
+        {isLinux && (
+          <section className="mt-6">
+            <label className="label mb-2" htmlFor="settings-audio-engine">
+              {t('settings.engine')}
+            </label>
+            <select
+              id="settings-audio-engine"
+              className="field"
+              value={backend}
+              onChange={(e) => changeBackend(e.target.value as LinuxAudioBackend)}
+            >
+              <option value="alsa">{t('settings.engine.alsa')}</option>
+              <option value="pipewire">{t('settings.engine.pipewire')}</option>
+            </select>
+            <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">{t('settings.engine.hint')}</p>
+          </section>
+        )}
 
         <p className="mt-auto pt-10 text-center text-xs text-neutral-400">{t('settings.credit')}</p>
       </div>

@@ -138,7 +138,8 @@ export function useDesktopEngine(
       available: api ? (info ? info.available : null) : false,
       info: info ? { version: info.version, backend: info.backend } : null,
       fallbackReason: fellBack ? fallback!.reason : null,
-      controls: useNative ? nat.native : null,
+      // tetap sediakan kontrol pengaturan walau lagu sedang diputar lewat Web Audio
+      controls: api ? nat.native : null,
     },
   };
 }
